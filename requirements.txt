@@ -1,0 +1,15 @@
+# Deep Learning
+torch>=2.0.0
+torchvision>=0.15.0
+
+# Reinforcement Learning
+gym>=0.26.0
+
+# Numerical computing
+numpy>=1.22.0
+
+# Visualization
+matplotlib>=3.5.0
+
+# Utilities
+tqdm>=4.65.0

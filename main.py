@@ -19,15 +19,17 @@ steps=100
 env = PortfolioEnv(S, T, mu, C, steps)
 
 # Create an instance of the agent
-agent = Agent(env)
-print('hi')
+state_size = env.observation_space.shape[0]
+action_size = env.action_space.shape[0]
+agent = Agent(env, state_size, action_size, random_seed=0)
 
 # Run the training loop
 for i in range(num_iterations):
-  print('yo')
   # Reset the environment at the start of each episode
   state = env.reset()
+  agent.reset()  # Reset noise
   
+  episode_reward = 0
   while True:
     # Select an action using the agent and the current state
     action = agent.act(state)
@@ -35,12 +37,15 @@ for i in range(num_iterations):
     # Step the environment and receive the next state, reward, done flag, and info
     next_state, reward, done, info = env.step(action)
     
-    # Update the agent based on the reward and next state
-    agent.learn(reward, state, next_state)
+    # Save experience to replay buffer and learn
+    agent.step(state, action, reward, next_state, done)
     
     # Set the state to the next state
     state = next_state
+    episode_reward += reward
     
     # If the episode is done, break the loop
     if done:
+      if i % 100 == 0:
+        print(f"Episode {i}, Reward: {episode_reward}")
       break

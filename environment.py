@@ -17,10 +17,10 @@ class PortfolioEnv(gym.Env):
     self.current_step=0
     self.path = generate_BS_paths(self.S, self.T, self.mu, self.C, self.steps, 1)
     
-    # Define the state space
-    self.observation_space = gym.spaces.Box(low=0, high=1, shape=(self.steps,))
-    # Define the action space
-    self.action_space = gym.spaces.Box(low=-1, high=1, shape=(self.path.shape[0],))
+    # Define the state space (asset prices)
+    self.observation_space = gym.spaces.Box(low=0, high=np.inf, shape=(len(self.mu),))
+    # Define the action space (portfolio weights)
+    self.action_space = gym.spaces.Box(low=0, high=1, shape=(len(self.mu),))
     
   def reset(self):
     # Generate a new stock price path using the generate_BS_paths function
@@ -28,38 +28,59 @@ class PortfolioEnv(gym.Env):
     
     # Initialize the cash and stock holdings to zero
     self.holdings = np.zeros(self.path.shape)
+    self.current_step = 0
     
     # Return the initial state of the path
-    return self.path[:,0]
+    return self.path[:, 0]
     
   def step(self, action):
     
-    # Calculate the total value of the portfolio at the current time step
-    total_value = np.trace(self.holdings[:, 0:self.current_step-1] @ (self.path[:, 1:self.current_step]-self.path[:, 0:self.current_step-1]).T)
+    # Normalize the action to sum to 1 (portfolio weights)
+    if np.sum(action) > 0:
+      allocation = action / np.sum(action)
+    else:
+      allocation = np.ones_like(action) / len(action)
     
-    allocation = action / np.sum(action)
-    # Update the cash and stock holdings
-   
-    self.holdings[self.current_step] = allocation
+    # Update the holdings
+    self.holdings[:, self.current_step] = allocation
     
-    # Calculate the reward based on the change in portfolio value
-    reward = self.holdings[:, self.current_step-1] @ (self.path[:, 1:self.current_step]-self.path[:, self.current_step-1])
-    
-    # Check if the episode is done
-    done = self.current_step == self.steps - 1
+    # Calculate the reward if not the first step
+    if self.current_step > 0:
+      price_returns = (self.path[:, self.current_step] - self.path[:, self.current_step-1]) / self.path[:, self.current_step-1]
+      reward = np.dot(self.holdings[:, self.current_step-1], price_returns)
+    else:
+      reward = 0
     
     # Increment the current time step
     self.current_step += 1
     
-    # Return the next state, reward, and done flag
-    return self.path[self.current_step], reward, done, {}
+    # Check if the episode is done
+    done = self.current_step >= self.steps - 1
     
-def render(self):
-  # Print the current time step and the current holdings for each asset
-  print(f"Step: {self.current_step}")
-  print(f"Holdings: {self.holdings[self.current_step]}")
-  
-  # Plot the stock price path and the holdings for each asset
-  plt.plot(self.path)
-  plt.plot(self.holdings)
-  plt.show()
+    # Return the next state, reward, and done flag
+    if done:
+      next_state = self.path[:, -1]
+    else:
+      next_state = self.path[:, self.current_step]
+    
+    return next_state, reward, done, {}
+    
+  def render(self):
+    # Print the current time step and the current holdings for each asset
+    print(f"Step: {self.current_step}")
+    print(f"Holdings: {self.holdings[:, self.current_step]}")
+    
+    # Plot the stock price path and the holdings for each asset
+    plt.figure(figsize=(12, 6))
+    plt.subplot(1, 2, 1)
+    plt.plot(self.path.T)
+    plt.title('Asset Prices')
+    plt.xlabel('Time Step')
+    plt.ylabel('Price')
+    
+    plt.subplot(1, 2, 2)
+    plt.plot(self.holdings.T)
+    plt.title('Portfolio Holdings')
+    plt.xlabel('Time Step')
+    plt.ylabel('Holdings')
+    plt.show()

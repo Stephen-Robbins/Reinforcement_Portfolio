@@ -110,18 +110,6 @@ Reinforcement_Portfolio/
 └── README.md           # This file
 ```
 
-## Results
-
-[To be added: Include training curves, performance metrics, and comparison with baseline strategies]
-
-## Future Improvements
-
-- [ ] Implement additional RL algorithms (PPO, SAC, TD3)
-- [ ] Add more realistic market features (bid-ask spread, market impact)
-- [ ] Include risk metrics (Sharpe ratio, maximum drawdown)
-- [ ] Support for more asset classes (options, bonds)
-- [ ] Backtesting on historical data
-- [ ] Multi-period portfolio optimization
 
 ## Dependencies
 
@@ -138,11 +126,6 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## Acknowledgments
-
-- DDPG algorithm: [Lillicrap et al., 2015](https://arxiv.org/abs/1509.02971)
-- Portfolio optimization literature and financial modeling techniques
-- OpenAI Gym for the environment framework
 
 ## Contact
 
